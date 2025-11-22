@@ -1,0 +1,68 @@
+{
+  "name": "pacifica-ts-sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for Pacifica  - Community built SDK for trading and account management",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "example:basic": "ts-node examples/basic-usage.ts",
+    "example:account": "ts-node examples/account-info.ts",
+    "example:agent": "ts-node examples/agent-wallet.ts",
+    "example:orders": "ts-node examples/orders.ts",
+    "example:batch": "ts-node examples/batch-orders.ts",
+    "example:close-orders": "ts-node examples/close-orders.ts",
+    "example:positions": "ts-node examples/positions.ts",
+    "example:position-sl-tp": "ts-node examples/position-sl-tp-leverage.ts",
+    "example:close-position": "ts-node examples/close-position.ts",
+    "example:twap": "ts-node examples/twap-orders.ts",
+    "example:builder": "ts-node examples/builder-code.ts",
+    "example:ws-market": "ts-node examples/websocket-market-data.ts",
+    "example:ws-trading": "ts-node examples/websocket-trading.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "pacifica",
+    "trading",
+    "api",
+    "sdk",
+    "typescript",
+    "defi",
+    "crypto"
+  ],
+  "author": "Community Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bvvvp009/pacifica-ts-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bvvvp009/pacifica-ts-sdk/issues"
+  },
+  "homepage": "https://github.com/bvvvp009/pacifica-ts-sdk#readme",
+  "dependencies": {
+    "@noble/ed25519": "^2.0.0",
+    "ws": "^8.14.2",
+    "@solana/web3.js": "^1.87.6",
+    "@solana/spl-token": "^0.3.9",
+    "bs58": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.10.0",
+    "@types/ws": "^8.5.10",
+    "dotenv": "^16.3.1",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.4.5",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

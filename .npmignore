@@ -1,0 +1,62 @@
+# Source files
+src/
+examples/
+
+# Development files
+*.ts
+!*.d.ts
+tsconfig.json
+
+# Test files
+*.test.ts
+*.spec.ts
+__tests__/
+coverage/
+.nyc_output/
+
+# Documentation (keep README)
+CONTRIBUTING.md
+PROJECT_STRUCTURE.md
+PACIFICA_API_TRACKING.md
+
+# Development tools
+.git/
+.gitignore
+.eslintrc*
+.prettierrc*
+jest.config.*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+
+# Build artifacts (keep dist)
+*.tsbuildinfo
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
