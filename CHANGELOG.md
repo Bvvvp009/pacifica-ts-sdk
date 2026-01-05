@@ -1,6 +1,24 @@
 # Changelog
 
-## [0.2.0] - Production-Ready Improvements
+## [0.2.0-beta] - January 5, 2026 - API Endpoint Fixes & Production Improvements
+
+> ⚠️ **BETA RELEASE** - Community SDK, not officially audited. Use at your own risk.
+
+### 🔧 Critical Fixes
+
+#### API Endpoint Corrections
+- **Fixed Mark Price Candles** - Changed `/mark_price/kline` → `/kline/mark` to match official API
+- **Fixed Funding History** - Changed `/funding` → `/funding_rate/history` to match official API
+- **Fixed Equity History** - Changed `/account/equity/history` → `/portfolio` with proper `time_range` parameter
+- **Fixed Single Position Endpoint** - Removed non-existent `/positions/{market}` endpoint, now filters client-side from `/positions?account=...`
+
+All endpoints now match official Pacifica API documentation.
+
+### ✅ Verification
+- All 28 unit tests passing
+- Comprehensive testing with real API calls
+- Market data endpoints verified working
+- Position endpoints verified working
 
 ### Added
 

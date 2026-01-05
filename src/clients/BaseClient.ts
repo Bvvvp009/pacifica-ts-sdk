@@ -229,7 +229,11 @@ export class BaseClient {
           let errorText: string = '';
           try {
             errorText = await response.text();
-            errorData = errorText ? JSON.parse(errorText) : {};
+            try {
+              errorData = errorText ? JSON.parse(errorText) : {};
+            } catch (parseError) {
+              errorData = { error: { message: errorText || response.statusText } };
+            }
           } catch {
             errorData = { error: { message: response.statusText } };
           }

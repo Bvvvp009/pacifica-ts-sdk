@@ -19,7 +19,7 @@ export class RateLimiter {
     const now = Date.now();
     const cutoff = now - this.windowMs;
     
-    // Remove old requests - more efficient than filter for large arrays
+    // Remove expired requests
     let writeIndex = 0;
     for (let i = 0; i < this.requests.length; i++) {
       if (this.requests[i] >= cutoff) {

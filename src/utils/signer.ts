@@ -131,9 +131,7 @@ export async function generateKeypair(privateKey: string | Uint8Array): Promise<
           return { publicKey, privateKey: privateKeyBytes };
         }
       } catch (error: any) {
-        // Base58 decode or key generation failed - only skip if it's a decode error
-        // If it's a different error, we should try base64 anyway
-        // Continue to try base64 format
+        // Skip base58 decode error and try next format
       }
     }
     
@@ -204,7 +202,7 @@ export async function signMessage(
  */
 export function createSignatureHeader(expiryWindow?: number): SignatureHeader {
   const header: SignatureHeader = {
-    timestamp: Math.floor(Date.now()), // Use milliseconds timestamp
+    timestamp: Math.floor(Date.now()),
   };
 
   if (expiryWindow !== undefined) {
@@ -335,8 +333,7 @@ export async function signWithHardwareWallet(
       throw new Error(`Hardware wallet signing failed: ${stderr}`);
     }
 
-    // The output contains both the approval message and the signature
-    // We need to extract just the signature (the last line)
+    // Extract signature from output
     const outputLines = stdout.trim().split('\n');
     const signature = outputLines[outputLines.length - 1].trim();
     

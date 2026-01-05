@@ -50,8 +50,6 @@ function buildDepositInstructionData(amount: number): Buffer {
     amount: BigInt(Math.round(amount * 1_000_000)), // 6 decimals for USDC
   };
 
-  // Create a simple struct serializer for borsh
-  // Borsh expects specific format
   const amountBuffer = Buffer.alloc(8);
   amountBuffer.writeBigUInt64LE(depositData.amount, 0);
   
@@ -198,17 +196,14 @@ export function privateKeyToKeypair(privateKey: string): Keypair {
     }
   }
   
-  // Try base58 format (Solana's native format)
+  // Try base58
   try {
-    // Use bs58 library if available, otherwise try native approach
-    // For now, we'll use Solana's built-in base58 decoder
     const keypair = Keypair.fromSecretKey(
       new Uint8Array(Buffer.from(cleanKey, 'base64'))
     );
     return keypair;
   } catch {
-    // Last attempt: try as base58 using a base58 library would be needed
-    // For simplicity, we'll require hex format for now
+    // Base58 requires additional library
     throw new Error(
       'Invalid private key format. Expected 64-byte hex string (128 chars) or base58 encoded key. ' +
       'For base58 keys, use the solana web3.js Keypair.fromSecretKey() method directly.'
@@ -255,10 +250,8 @@ export function createKeypairFromPrivateKey(privateKey: string | Uint8Array): Ke
       // Fall through
     }
     
-    // Try base58 (Solana's native format) - requires @solana/web3.js which handles it
+    // Try base58 format
     try {
-      // If it's a base58 string, @solana/web3.js Keypair.fromSecretKey might handle it
-      // But we need to decode it first. For now, throw helpful error.
       throw new Error('Base58 format detected but requires decoding. Please convert to hex or base64.');
     } catch {
       // Fall through

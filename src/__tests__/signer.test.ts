@@ -47,8 +47,6 @@ describe('Signer Utilities', () => {
     });
   });
 
-  // Note: Tests for generateKeypair, signMessage, and verifySignature
-  // require @noble/ed25519 which is an ESM module.
-  // These tests should be run with proper ESM configuration or integration tests.
+  // ESM module tests should use integration tests
 });
 

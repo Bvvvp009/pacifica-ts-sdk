@@ -3,7 +3,26 @@
  * Handles all read-only GET requests that don't require signing
  */
 
-import { ApiResponse, MarketInfo, Ticker, OrderBook, Trade, Order, TWAPOrder, Position, PacificaConfig } from '../types';
+import { 
+  ApiResponse, 
+  PaginatedResponse,
+  MarketInfo, 
+  Ticker, 
+  OrderBook, 
+  Trade, 
+  Order, 
+  TWAPOrder, 
+  Position, 
+  PacificaConfig,
+  PriceData,
+  CandleData,
+  MarkPriceCandleData,
+  HistoricalFunding,
+  TradeHistoryItem,
+  FundingHistoryItem,
+  AccountEquityHistoryItem,
+  AccountSettings,
+} from '../types';
 import { BaseClient } from './BaseClient';
 
 export class ApiClient extends BaseClient {
@@ -167,10 +186,25 @@ export class ApiClient extends BaseClient {
 
   /**
    * Get position for a specific market
+   * Note: This filters client-side from getPositions() as the API doesn't have a single-position endpoint
    */
   async getPosition(market: string, account?: string): Promise<ApiResponse<Position>> {
-    const params: Record<string, string> | undefined = account ? { account } : undefined;
-    return this.get<Position>(`/positions/${market}`, params);
+    const result = await this.getPositions(account, market);
+    if (result.success && result.data && Array.isArray(result.data)) {
+      const position = result.data.find((p: Position) => p.market === market);
+      if (position) {
+        return { ...result, data: position };
+      }
+      return {
+        success: false,
+        data: undefined,
+        error: {
+          code: 'NOT_FOUND',
+          message: `Position not found for market: ${market}`,
+        },
+      };
+    }
+    return result as any;
   }
 
   /**
@@ -218,6 +252,189 @@ export class ApiClient extends BaseClient {
    */
   async getTWAPOrderHistoryById(orderId: string | number): Promise<ApiResponse<TWAPOrder>> {
     return this.get<TWAPOrder>('/orders/twap/history_by_id', { order_id: orderId.toString() });
+  }
+
+  // Market Data Methods
+
+  /**
+   * Get price information for all symbols
+   * Includes mark prices, funding rates, and market statistics
+   */
+  async getPrices(symbol?: string): Promise<ApiResponse<PriceData[]>> {
+    const endpoint = symbol ? `/info/prices?symbol=${symbol}` : '/info/prices';
+    return this.get<PriceData[]>(endpoint);
+  }
+
+  /**
+   * Get candle/kline data for a specific market
+   * @param symbol Market symbol (e.g., 'BTC', 'ETH')
+   * @param interval Candle interval: '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M'
+   * @param startTime Start time in milliseconds
+   * @param endTime End time in milliseconds (optional)
+   * @param limit Number of candles to return (optional)
+   */
+  async getCandleData(
+    symbol: string,
+    interval: string,
+    startTime: number,
+    endTime?: number,
+    limit?: number
+  ): Promise<ApiResponse<CandleData[]>> {
+    const params: Record<string, string> = {
+      symbol,
+      interval,
+      start_time: startTime.toString(),
+    };
+    if (endTime) params.end_time = endTime.toString();
+    if (limit) params.limit = limit.toString();
+    return this.get<CandleData[]>('/kline', params);
+  }
+
+  /**
+   * Get mark price candle data for a specific market
+   * @param symbol Market symbol (e.g., 'BTC', 'ETH')
+   * @param interval Candle interval
+   * @param startTime Start time in milliseconds
+   * @param endTime End time in milliseconds (optional)
+   * @param limit Number of candles to return (optional)
+   */
+  async getMarkPriceCandleData(
+    symbol: string,
+    interval: string,
+    startTime: number,
+    endTime?: number,
+    limit?: number
+  ): Promise<ApiResponse<MarkPriceCandleData[]>> {
+    const params: Record<string, string> = {
+      symbol,
+      interval,
+      start_time: startTime.toString(),
+    };
+    if (endTime) params.end_time = endTime.toString();
+    if (limit) params.limit = limit.toString();
+    return this.get<MarkPriceCandleData[]>('/kline/mark', params);
+  }
+
+  /**
+   * Get historical funding rates for a market
+   * @param symbol Market symbol (optional - if not provided, returns all markets)
+   * @param startTime Start time in milliseconds (optional)
+   * @param endTime End time in milliseconds (optional)
+   * @param limit Number of results to return (optional)
+   */
+  async getHistoricalFunding(
+    symbol?: string,
+    startTime?: number,
+    endTime?: number,
+    limit?: number
+  ): Promise<ApiResponse<HistoricalFunding[]>> {
+    const params: Record<string, string> = {};
+    if (symbol) params.symbol = symbol;
+    if (startTime) params.start_time = startTime.toString();
+    if (endTime) params.end_time = endTime.toString();
+    if (limit) params.limit = limit.toString();
+    return this.get<HistoricalFunding[]>('/funding_rate/history', params);
+  }
+
+  // Account History Methods
+
+  /**
+   * Get trade history for an account
+   * @param account Account public key
+   * @param symbol Market symbol (optional)
+   * @param startTime Start time in milliseconds (optional)
+   * @param endTime End time in milliseconds (optional)
+   * @param limit Number of results to return (optional, default 100)
+   * @param cursor Pagination cursor (optional)
+   */
+  async getTradeHistory(
+    account: string,
+    symbol?: string,
+    startTime?: number,
+    endTime?: number,
+    limit?: number,
+    cursor?: string
+  ): Promise<PaginatedResponse<TradeHistoryItem>> {
+    if (!account) {
+      throw new Error('Account parameter is required for getTradeHistory()');
+    }
+    const params: Record<string, string> = { account };
+    if (symbol) params.symbol = symbol;
+    if (startTime) params.start_time = startTime.toString();
+    if (endTime) params.end_time = endTime.toString();
+    if (limit) params.limit = limit.toString();
+    if (cursor) params.cursor = cursor;
+    return this.get<PaginatedResponse<TradeHistoryItem>>('/trades/history', params) as any;
+  }
+
+  /**
+   * Get funding payment history for an account
+   * @param account Account public key
+   * @param symbol Market symbol (optional)
+   * @param limit Number of results to return (optional, default 100)
+   * @param cursor Pagination cursor (optional)
+   */
+  async getFundingHistory(
+    account: string,
+    symbol?: string,
+    limit?: number,
+    cursor?: string
+  ): Promise<PaginatedResponse<FundingHistoryItem>> {
+    if (!account) {
+      throw new Error('Account parameter is required for getFundingHistory()');
+    }
+    const params: Record<string, string> = { account };
+    if (symbol) params.symbol = symbol;
+    if (limit) params.limit = limit.toString();
+    if (cursor) params.cursor = cursor;
+    return this.get<PaginatedResponse<FundingHistoryItem>>('/funding/history', params) as any;
+  }
+
+  /**
+   * Get account equity history
+   * @param account Account public key
+   * @param timeRange Time range (e.g., '1d', '7d', '30d', '90d') - defaults to '7d'
+   * @param startTime Start time in milliseconds (optional, overrides timeRange if provided)
+   * @param endTime End time in milliseconds (optional)
+   * @param limit Number of results to return (optional)
+   */
+  async getAccountEquityHistory(
+    account: string,
+    timeRangeOrStartTime?: string | number,
+    endTime?: number,
+    limit?: number
+  ): Promise<ApiResponse<AccountEquityHistoryItem[]>> {
+    if (!account) {
+      throw new Error('Account parameter is required for getAccountEquityHistory()');
+    }
+    const params: Record<string, string> = { account };
+    
+    // If first param is a number, treat as startTime for backwards compatibility
+    if (typeof timeRangeOrStartTime === 'number') {
+      params.start_time = timeRangeOrStartTime.toString();
+      if (endTime) params.end_time = endTime.toString();
+    } else if (typeof timeRangeOrStartTime === 'string') {
+      // String is treated as time_range
+      params.time_range = timeRangeOrStartTime;
+    } else {
+      // Default to 7d if nothing specified
+      params.time_range = '7d';
+    }
+    
+    if (limit) params.limit = limit.toString();
+    return this.get<AccountEquityHistoryItem[]>('/portfolio', params);
+  }
+
+  /**
+   * Get account settings (margin mode and leverage per symbol)
+   * Returns only symbols with non-default settings
+   * @param account Account public key
+   */
+  async getAccountSettings(account: string): Promise<ApiResponse<AccountSettings[]>> {
+    if (!account) {
+      throw new Error('Account parameter is required for getAccountSettings()');
+    }
+    return this.get<AccountSettings[]>('/account/settings', { account });
   }
 }
 

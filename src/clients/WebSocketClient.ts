@@ -35,8 +35,11 @@ export class WebSocketClient {
   private config: Required<WebSocketConfig>;
   private reconnectAttempts = 0;
   private reconnectTimer: NodeJS.Timeout | null = null;
+  private heartbeatTimer: NodeJS.Timeout | null = null;
+  private heartbeatInterval = 30000; // Send ping every 30 seconds (well before 60s timeout)
   private eventHandlers: Map<WebSocketEventType, Set<WebSocketEventHandler>> = new Map();
   private isConnecting = false;
+  private manualDisconnect = false;
   private subscriptions: Set<string> = new Set();
   private privateKey?: string | Uint8Array;
   private accountPublicKey?: string;
@@ -64,7 +67,7 @@ export class WebSocketClient {
       this.agentWalletPublicKey = config.agentWalletPublicKey;
     }
     
-    // Set builder code from config or env (env takes precedence)
+    // Env builder code takes precedence
     this.builderCode = process.env.BUILDER_CODE || config?.builderCode;
   }
 
@@ -80,6 +83,9 @@ export class WebSocketClient {
       return;
     }
 
+    // Any new connect attempt clears manual disconnect flag
+    this.manualDisconnect = false;
+
     this.isConnecting = true;
 
     return new Promise((resolve, reject) => {
@@ -91,6 +97,9 @@ export class WebSocketClient {
           this.reconnectAttempts = 0;
           logger.info('WebSocket connected');
           this.emit('open', {});
+          
+          // Start heartbeat to keep connection alive
+          this.startHeartbeat();
           
           // Re-subscribe to previous channels
           this.subscriptions.forEach((channel) => {
@@ -119,6 +128,7 @@ export class WebSocketClient {
         this.ws!.on('close', () => {
           this.isConnecting = false;
           logger.warn('WebSocket closed');
+          this.stopHeartbeat();
           this.emit('close', {});
           this.handleReconnect();
         });
@@ -133,10 +143,14 @@ export class WebSocketClient {
    * Disconnect from WebSocket
    */
   disconnect(): void {
+    this.manualDisconnect = true;
+
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
+
+    this.stopHeartbeat();
 
     if (this.ws) {
       this.ws.close();
@@ -463,6 +477,12 @@ export class WebSocketClient {
   }
 
   private handleMessage(message: WebSocketMessage): void {
+    // Handle pong response for heartbeat
+    if ((message as any).channel === 'pong') {
+      logger.debug('Received pong from server');
+      return;
+    }
+
     this.emit('message', message);
 
     // Route specific message types
@@ -495,6 +515,11 @@ export class WebSocketClient {
   }
 
   private handleReconnect(): void {
+    if (this.manualDisconnect) {
+      logger.debug('Skipping reconnect because disconnect was manual');
+      return;
+    }
+
     if (!this.config.reconnect) {
       return;
     }
@@ -520,6 +545,37 @@ export class WebSocketClient {
         this.emit('error', { error });
       });
     }, cappedDelay);
+  }
+
+  /**
+   * Start heartbeat to keep connection alive
+   * Sends ping every 30 seconds (well before 60s timeout)
+   */
+  private startHeartbeat(): void {
+    this.stopHeartbeat();
+    
+    logger.debug('Starting WebSocket heartbeat');
+    this.heartbeatTimer = setInterval(() => {
+      if (this.ws && this.ws.readyState === 1) { // WebSocket.OPEN = 1
+        logger.debug('Sending ping to keep connection alive');
+        try {
+          this.ws.send(JSON.stringify({ method: 'ping' }));
+        } catch (error) {
+          logger.error('Failed to send ping:', error);
+        }
+      }
+    }, this.heartbeatInterval);
+  }
+
+  /**
+   * Stop heartbeat timer
+   */
+  private stopHeartbeat(): void {
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+      logger.debug('Stopped WebSocket heartbeat');
+    }
   }
 }
 

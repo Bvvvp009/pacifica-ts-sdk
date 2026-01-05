@@ -23,4 +23,6 @@ module.exports = {
   moduleFileExtensions: ['ts', 'js', 'json'],
   verbose: true,
   testTimeout: 10000,
+  forceExit: true,
+  detectOpenHandles: false,
 };

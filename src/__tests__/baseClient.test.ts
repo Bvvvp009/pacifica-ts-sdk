@@ -19,6 +19,10 @@ describe('BaseClient Retry Logic', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+
   it('should retry on network errors', async () => {
     let callCount = 0;
     (global.fetch as jest.Mock).mockImplementation(() => {

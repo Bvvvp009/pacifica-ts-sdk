@@ -10,6 +10,7 @@ import {
   CreateOrderParams,
   CreateStopOrderParams,
   CancelOrderParams,
+  EditOrderParams,
   CreateTWAPOrderParams,
   CancelTWAPOrderParams,
   BatchOrderAction,
@@ -59,7 +60,7 @@ export class SignClient extends BaseClient {
     this.privateKey = privateKey;
     this.accountPublicKey = config?.accountPublicKey;
     this.agentWalletPublicKey = config?.agentWalletPublicKey;
-    // Set builder code from config or env (env takes precedence)
+    // Env builder code takes precedence
     this.builderCode = process.env.BUILDER_CODE || config?.builderCode;
     if (config?.expiryWindow !== undefined) {
       this.defaultExpiryWindow = config.expiryWindow;
@@ -251,6 +252,35 @@ export class SignClient extends BaseClient {
     return this.makeSignedRequest(
       '/orders/cancel',
       'cancel_order',
+      params,
+      options
+    );
+  }
+
+  /**
+   * Edit an existing order
+   * Note: This cancels the original order and creates a new one with updated parameters
+   * The new order maintains the same side, reduce-only status, and client_order_id
+   * @param params EditOrderParams with order_id or client_order_id, and updated price/amount
+   */
+  async editOrder(params: EditOrderParams, options?: RequestOptions): Promise<ApiResponse> {
+    // Validate that we have either order_id or client_order_id
+    if (!params.order_id && !params.client_order_id) {
+      throw new Error('Either order_id or client_order_id is required for editOrder');
+    }
+    
+    // Validate that we have something to update
+    if (!params.price && !params.amount) {
+      throw new Error('Either price or amount must be provided to edit an order');
+    }
+
+    if (!params.symbol) {
+      throw new Error('Symbol is required for editOrder');
+    }
+
+    return this.makeSignedRequest(
+      '/orders/edit',
+      'edit_order',
       params,
       options
     );
@@ -765,14 +795,25 @@ export class SignClient extends BaseClient {
 
   /**
    * Get position for a specific market (signed request)
+   * Note: This filters client-side from getPositions() as the API doesn't have a single-position endpoint
    */
   async getPosition(market: string, options?: RequestOptions): Promise<ApiResponse> {
-    return this.makeSignedRequest(
-      `/positions/${market}`,
-      'get_position',
-      {},
-      options
-    );
+    const result = await this.getPositions(market, options);
+    if (result.success && result.data && Array.isArray(result.data)) {
+      const position = result.data.find((p: any) => p.market === market || p.symbol === market);
+      if (position) {
+        return { ...result, data: position };
+      }
+      return {
+        success: false,
+        data: null,
+        error: {
+          code: 'NOT_FOUND',
+          message: `Position not found for market: ${market}`,
+        },
+      };
+    }
+    return result;
   }
 
   /**

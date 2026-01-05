@@ -1,6 +1,6 @@
 /**
  * Pacifica TypeScript SDK
- * Community-built TypeScript SDK for Pacifica API
+ * Professional TypeScript SDK for Pacifica API
  * 
  * @packageDocumentation
  */
@@ -41,6 +41,20 @@ export {
   buildSignedRequestWithHardwareWallet,
 } from './utils/signer';
 
+// Export validation utilities
+export {
+  roundToTickSize,
+  calculateSLTP,
+  validatePriceRange,
+  validateMinOrderValue,
+  validateBalance,
+  validateOrder,
+  formatValidationResult,
+  TICK_SIZES,
+  MIN_ORDER_VALUE,
+  MAX_PRICE_DEVIATION,
+} from './utils/tradeValidation';
+
 // Export logger
 export { logger } from './utils/logger';
 
@@ -80,7 +94,6 @@ export class PacificaSDK {
       solanaRpcUrl?: string;
     }
   ) {
-    // Initialize SignClient
     this.signClient = new SignClient(privateKey, {
       baseUrl: config?.baseUrl,
       accountPublicKey: config?.accountPublicKey,
@@ -93,7 +106,6 @@ export class PacificaSDK {
       logLevel: config?.logLevel,
     });
 
-    // Initialize ApiClient
     this.apiClient = new ApiClient({
       baseUrl: config?.baseUrl,
       timeout: config?.timeout,
@@ -102,7 +114,6 @@ export class PacificaSDK {
       logLevel: config?.logLevel,
     });
 
-    // Initialize WebSocketClient
     this.wsClient = new WebSocketClient({
       url: config?.wsUrl,
       reconnect: config?.wsReconnect,
@@ -112,7 +123,6 @@ export class PacificaSDK {
       builderCode: config?.builderCode,
     });
 
-    // Initialize SolanaClient
     this.solanaClient = new SolanaClient(privateKey, {
       rpcUrl: config?.solanaRpcUrl,
     });

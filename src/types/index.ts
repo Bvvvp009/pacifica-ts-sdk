@@ -7,6 +7,7 @@ export type OperationType =
   | 'create_order'
   | 'create_market_order'
   | 'create_stop_order'
+  | 'edit_order'
   | 'cancel_order'
   | 'cancel_all_orders'
   | 'cancel_stop_order'
@@ -97,6 +98,15 @@ export interface CancelOrderParams {
   order_id: string | number;
   symbol?: string;
   client_order_id?: string;
+}
+
+export interface EditOrderParams {
+  order_id?: string | number;
+  client_order_id?: string;
+  symbol: string;
+  price?: string;
+  amount?: string;
+  agent_wallet?: string;
 }
 
 export interface CreateTWAPOrderParams {
@@ -310,6 +320,105 @@ export interface OrderBook {
   bids: [string, string][];
   asks: [string, string][];
   timestamp: number;
+}
+
+// Market data types (new additions)
+export interface PriceData {
+  symbol: string;
+  mark: string;
+  mid: string;
+  oracle: string;
+  funding: string;
+  next_funding: string;
+  open_interest: string;
+  volume_24h: string;
+  yesterday_price: string;
+  timestamp: number;
+}
+
+export interface CandleData {
+  t: number;  // Start time
+  T: number;  // Close time
+  s: string;  // Symbol
+  i: string;  // Interval
+  o: string;  // Open
+  c: string;  // Close
+  h: string;  // High
+  l: string;  // Low
+  v: string;  // Volume
+  n: number;  // Number of trades
+}
+
+export interface MarkPriceCandleData {
+  t: number;  // Start time
+  T: number;  // Close time
+  s: string;  // Symbol
+  i: string;  // Interval
+  o: string;  // Open mark price
+  c: string;  // Close mark price
+  h: string;  // High mark price
+  l: string;  // Low mark price
+}
+
+export interface HistoricalFunding {
+  symbol: string;
+  rate: string;
+  timestamp: number;
+  next_funding_time?: number;
+}
+
+// Account history types (new additions)
+export interface TradeHistoryItem {
+  history_id: number;
+  order_id: number;
+  client_order_id?: string;
+  symbol: string;
+  amount: string;
+  price: string;
+  entry_price: string;
+  fee: string;
+  pnl: string;
+  event_type: string;
+  side: string;
+  created_at: number;
+  cause: string;
+}
+
+export interface FundingHistoryItem {
+  history_id: number;
+  symbol: string;
+  side: string;
+  amount: string;
+  payout: string;
+  rate: string;
+  created_at: number;
+}
+
+export interface AccountEquityHistoryItem {
+  timestamp: number;
+  equity: string;
+  balance: string;
+  unrealized_pnl: string;
+}
+
+export interface AccountSettings {
+  symbol: string;
+  isolated: boolean;
+  leverage: number;
+  created_at: number;
+  updated_at: number;
+}
+
+// Pagination support
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: T[];
+  next_cursor?: string;
+  has_more: boolean;
+  error?: {
+    code: string;
+    message: string;
+  };
 }
 
 export interface Trade {

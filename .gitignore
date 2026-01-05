@@ -3,10 +3,18 @@ dist/
 *.log
 .DS_Store
 .env
+.env.local
+.env.*.local
 *.tsbuildinfo
 coverage/
 .idea/
 .vscode/
+*.swp
+*.swo
+*~
+.cache/
+tmp/
+temp/
 
 
 
