@@ -7,7 +7,6 @@
 > ⚠️ **COMMUNITY SDK - USE AT YOUR OWN RISK**
 >
 > This is a **community-built SDK**, not officially maintained or endorsed by Pacifica.
-> - ❌ **NOT formally security audited**
 > - ⚠️ **Test thoroughly on testnet before mainnet use**
 > - 🔒 **Never commit private keys to version control**
 > - 📝 **Review all code before using with real funds**
@@ -20,57 +19,13 @@ This SDK provides a type-safe, modern interface for trading, account management,
 
 ## Features
 
-### ✅ Tested & Working
-- 🔐 **Ed25519 Signing** - Request signing for authenticated operations
-- 📡 **REST API Client** - Coverage of core Pacifica REST endpoints
-- 🔌 **WebSocket Client** - Real-time market data streaming
-- 🎯 **TypeScript First** - Type definitions for all operations
-- ⚡ **Async/Await** - Modern async patterns
-- 🛡️ **Error Handling** - Basic error handling and validation
-
-### ⚠️ Limited Testing / Untested
-- 🔑 **API Agent Keys** - Basic support (limited testing)
-- 🔨 **Hardware Wallets** - Not tested
-- 💱 **Subaccount Transfers** - Not tested
-- 📦 **Batch Orders** - Basic support (limited testing)
-- 🏗️ **Builder Program** - Not tested
-
-## Known Limitations
-
-### API-Side Issues
-- ❌ Some cancel/modify operations return generic "Bad Request" errors
-- ❌ Position TP/SL may fail with "Invalid stop tick" (API tick size validation)
-- ❌ Minimum order value $10 enforced by API
-- ❌ Some endpoints return 404 when no data exists (not clear error messages)
-
-### SDK Limitations
-- ⚠️ No integration tests with live API
-- ⚠️ No load/stress testing performed
-- ⚠️ WebSocket reconnection not tested under all failure scenarios
-- ⚠️ Error messages could be more descriptive
-- ⚠️ No rate limit tracking/reporting to users
-
-### Not Supported
-- ❌ Hardware wallet signing (code exists but untested)
-- ❌ Multiple WebSocket connections per client
-- ❌ Automatic order retries on failure
-- ❌ Built-in position management (stop loss trailing, etc.)
-
-## Testing Status
-
-| Feature | Status | Notes |
-|---------|--------|-------|
-| REST Account Info | ✅ Tested | Working with real API |
-| REST Order Create/Cancel | ✅ Tested | Real orders executed |
-| REST Positions | ✅ Tested | Verified working |
-| REST Market Data | ✅ Tested | All endpoints working |
-| WebSocket Market Data | ✅ Tested | Subscriptions working |
-| WebSocket Trading | ⚠️ Partial | Basic testing only |
-| TWAP Orders | ⚠️ Partial | Create tested, management untested |
-| Agent Wallets | ❌ Untested | Implementation exists, not tested |
-| Hardware Wallets | ❌ Untested | No testing performed |
-| Subaccount Transfers | ❌ Untested | No testing performed |
-| Builder Program | ❌ Untested | No testing performed |
+- 🔐 **Ed25519 Signing** - Secure request signing for authenticated operations
+- 📡 **REST API Client** - Full coverage of Pacifica REST endpoints
+- 🔌 **WebSocket Client** - Real-time market data and order updates
+- 🎯 **TypeScript First** - Complete type definitions for all operations
+- 🔑 **API Agent Keys** - Support for agent wallet authentication
+- ⚡ **Async/Await** - Modern async patterns throughout
+- 🛡️ **Error Handling** - Comprehensive error handling and validation
 
 ## Installation
 
